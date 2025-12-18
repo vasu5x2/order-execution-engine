@@ -12,7 +12,7 @@ export async function recentRoutes(app: FastifyInstance) {
 
     return reply.send({
       limit,
-      orders: rows.map((o) => ({
+      orders: rows.map((o: { id: any; status: any; orderType: any; tokenIn: any; tokenOut: any; amountIn: any; slippageBps: any; chosenDex: any; txHash: any; executedPrice: any; errorReason: any; createdAt: any; }) => ({
         id: o.id,
         status: o.status,
         orderType: o.orderType,

@@ -1,5 +1,5 @@
 import { prisma } from "../db/prisma";
-import { publishOrderEvent } from "../redis/redis";
+import { OrderEvent, publishOrderEvent } from "../redis/redis";
 
 export async function setStatus(orderId: string, status: "pending" | "routing" | "building" | "submitted") {
   await prisma.order.update({
@@ -33,7 +33,7 @@ export async function setConfirmed(args: {
     txHash: args.txHash,
     executedPrice: args.executedPrice,
     chosenDex: args.chosenDex
-  });
+  } as Omit<OrderEvent, "seq">);
 }
 
 export async function setFailedFinal(orderId: string, error: string) {
@@ -49,6 +49,6 @@ export async function setFailedFinal(orderId: string, error: string) {
     type: "failed",
     orderId,
     ts: Date.now(),
-    error
-  });
+    errorReason: error
+  } as Omit<OrderEvent, "seq">);
 }
