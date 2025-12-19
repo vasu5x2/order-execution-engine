@@ -6,6 +6,7 @@ import { MockDexRouter } from "../dex/mockDexRouter";
 import { setConfirmed, setFailedFinal, setStatus } from "../services/orderProgress";
 import { markOrderActive, unmarkOrderActive } from "../redis/activeOrders";
 import { logRoutingDecision } from "../services/routingLog";
+import { sleep } from "../utils/sleep";
 
 const router = new MockDexRouter();
 
@@ -25,6 +26,7 @@ async function processExecuteMarket(job: Job<ExecuteOrderJob>) {
     }
 
     await setStatus(orderId, "routing");
+    await sleep(800);
 
     const amountIn = Number(order.amountIn);
     const decision = await router.routeBest(order.tokenIn, order.tokenOut, amountIn);
@@ -53,7 +55,9 @@ async function processExecuteMarket(job: Job<ExecuteOrderJob>) {
     });
 
     await setStatus(orderId, "building");
+    await sleep(800);
     await setStatus(orderId, "submitted");
+    await sleep(800);
 
     const quoted = decision.chosenDex === "raydium" ? decision.raydium : decision.meteora;
 
@@ -108,7 +112,7 @@ export async function handleOrderJob(job: Job<ExecuteOrderJob>) {
 export function startOrderWorker() {
   const worker = new Worker<ExecuteOrderJob>(ORDERS_QUEUE_NAME, handleOrderJob, {
     connection: redis,
-    concurrency: 10
+    concurrency: 2
   });
 
   worker.on("completed", (job, result) => {
